@@ -1,11 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import re
-import sys
-import argparse
-from pprint import pprint
-from opentrons import simulate
+
 
 def is_summary_command(_command):
     return _command['level']==0
@@ -69,7 +65,7 @@ def is_well_from_trough(_loc):
 
 
 def get_pipette_type(_command):
-    return command['payload']['instrument'].type
+    return _command['payload']['instrument'].type
 
 def get_volume(_command):
     return [_command['payload']['volume']]
@@ -111,7 +107,7 @@ def which_transfer_case(_command):
     return case
 
 
-def process_one2many(_command):
+def process_one2many(_command, _fidout):
     pipette_type = get_pipette_type(_command)
     _payload = _command['payload']
     src_slot, src_name = get_slot_and_well_name(_payload['source'], pipette_type)
@@ -121,11 +117,11 @@ def process_one2many(_command):
         # unpack tuples (well, height) and get slot and name
         dst_slot, dst_name = get_slot_and_well_name(dst,pipette_type)
         # print
-        print_mapping(src_slot, src_name, dst_slot, dst_name, amount)
+        print_mapping(src_slot, src_name, dst_slot, dst_name, amount, _fidout)
         # print_mapping(src_slot, src_name, dst_slot, dst_name)
 
 
-def process_many2many(_command):
+def process_many2many(_command, _fidout):
     pipette_type = get_pipette_type(_command)
     _payload = _command['payload']
     amount = get_volume(_command)
@@ -135,11 +131,11 @@ def process_many2many(_command):
         src_slot, src_name = get_slot_and_well_name(src, pipette_type)
         dst_slot, dst_name = get_slot_and_well_name(dst, pipette_type)
         # print
-        print_mapping(src_slot, src_name, dst_slot, dst_name, amount)
+        print_mapping(src_slot, src_name, dst_slot, dst_name, amount, _fidout)
         # print_mapping(src_slot, src_name, dst_slot, dst_name)
 
 
-def process_one2one(_command):
+def process_one2one(_command, _fidout):
     pipette_type = get_pipette_type(_command)
     _payload = _command['payload']
     # unpack tuples (well, height) and get slot and name
@@ -147,23 +143,26 @@ def process_one2one(_command):
     dst_slot, dst_name = get_slot_and_well_name(_payload['dest'], pipette_type)
     amount = get_volume(_command)
     # print
-    print_mapping(src_slot, src_name, dst_slot, dst_name, amount)
+    print_mapping(src_slot, src_name, dst_slot, dst_name, amount, _fidout)
     # print_mapping(src_slot, src_name, dst_slot, dst_name)
 
 
-def print_mapping(_src_slot, _src_name, _dst_slot, _dst_name, _amount):
+def print_mapping(_src_slot, _src_name, _dst_slot, _dst_name, _amount, _fidout):
     if len(_amount)==1 and len(_amount)!=len(_dst_name):
         _amount = _amount*len(_dst_name)
     try:
         for _sslt, _snm, _dslt, _dnm, _amnt in zip(_src_slot, _src_name, _dst_slot, _dst_name, _amount):
-            print('{},{},{},{},{:.1f}'.format(_sslt, _snm, _dslt, _dnm, _amnt), file=fidout)
+            print('{},{},{},{},{:.1f}'.format(_sslt, _snm, _dslt, _dnm, _amnt), file=_fidout)
     except:
         import pdb; pdb.set_trace()
 
 
-
-#%%
-if __name__ == '__main__':
+def main():
+    import re
+    import sys
+    import argparse
+    from pprint import pprint
+    from opentrons import simulate
 
     parser = argparse.ArgumentParser(description="Run a robot's simulation, output well mapping in csv-friendly format")
     parser.add_argument('protocol',
@@ -201,10 +200,14 @@ if __name__ == '__main__':
             # ignore trough to many
             pass
         elif case == 'one-to-many':
-            process_one2many(command)
+            process_one2many(command, fidout)
         elif case == 'many-to-many':
-            process_many2many(command)
+            process_many2many(command, fidout)
         elif case == 'one-to-one':
-            process_one2one(command)
+            process_one2one(command, fidout)
         else:
             pass
+
+#%%
+if __name__ == '__main__':
+    main()

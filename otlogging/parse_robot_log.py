@@ -1,30 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 import re
 import sys
 import argparse
 from collections import namedtuple
-"""
-transfer can be:
 
-1 aspirate -> 1 dispense
-N aspirate -> 1 dispense (I won't support this at the moment, if the aspirate are from different wells)
-1 aspirate -> N dispense
-
-what closes a transfer?
-a) drop tip
-b) an aspirate after a dispense
-
-
-what starts a transfer?
-a) a pick up
-b) an aspirate after a dispense
-
-pick up is always after a drop (or beginning of protocol)
-
-
-"""
 LINE_TYPES = {'aspirate':'Aspirating',
               'dispense':'Dispensing',
               'pickup':'Picking up',
@@ -60,7 +40,19 @@ def which_type_of_line(raw_line, linetypes_dict):
 
 
 class LiquidTransfer(object):
-
+    """
+    transfer can be:
+        1 aspirate -> 1 dispense
+        N aspirate -> 1 dispense (I won't support this at the moment, if the aspirate are from different wells)
+        1 aspirate -> N dispense
+    what closes a transfer?
+        a) drop tip
+        b) an aspirate after a dispense
+    what starts a transfer?
+        a) a pick up
+        b) an aspirate after a dispense
+    pick up is always after a drop (or beginning of protocol)
+    """
     def __init__(self, _line, _line_type, pipette_type=None):
         self.source = []
         self.dest = []
@@ -234,7 +226,8 @@ def parse_protocol(fname, fidout):
 
 #%% ---------------------------------------------------------------------------
 
-if __name__ == '__main__':
+def main():
+
 
     # input parser
     parser = argparse.ArgumentParser(description="Parsse the output of a robot's protocol, output well mapping in csv-friendly format")
@@ -250,3 +243,7 @@ if __name__ == '__main__':
 
     # main function
     parse_protocol(protocol_fname, fidout)
+
+
+if __name__ == '__main__':
+    main()
