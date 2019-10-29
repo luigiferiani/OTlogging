@@ -93,9 +93,11 @@ def which_transfer_case(_command):
     # - it's a one-to-one command, (if using a single tip pipette e.g.)
     _payload = _command['payload']
     if is_trough(_command):
-        if (not isinstance(_payload['source'],list)) and isinstance(_payload['dest'],list):
+        if (_payload['source'].__class__.__name__ not in ['list','WellSeries']) and (_payload['dest'].__class__.__name__ in ['list','WellSeries']):
             case = 'trough-to-many'
         else:
+            pprint(_command)
+            # import pdb; pdb.set_trace()
             raise ValueError('Trough involved in command that is not one-to-many: Not a supported command yet!')
     else:
         if (not isinstance(_payload['source'],list)) and isinstance(_payload['dest'],list):
