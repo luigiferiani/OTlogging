@@ -1,12 +1,13 @@
 # OTlogging
 
-Repository with code to run an Opentrons protocol simulation and logging its results,
-and to parse the text output from the standard opentrons_simulate
+Repository with code to run an OpenTrons protocol simulation and logging its results,
+and to parse the text output from the standard `opentrons_simulate`
 
 Instructions
 ------------
 
 This repo provides two methods for logging the robot's actions.
+It relies on the OpenTrons API being installed, and works in the conda environment where the OpenTrons API is installed.
 
 ### A wrapper for opentrons_simulate
 
@@ -24,7 +25,8 @@ This will likely change soon though.
 
 #### Usage
 ```
-python run_opentrons_simulation.py /path/to/protocol.py -o /path/to/output.csv
+$ source activate opentrons
+$ python run_opentrons_simulation.py /path/to/protocol.py -o /path/to/output.csv
 # -o is optional, if omitted the output is shown in the terminal
 ```
 
@@ -35,7 +37,8 @@ The script `parse_robot_log.py` takes instead an existing text file with the pri
 
 #### Usage
 ```
-python parse_robot_log.py /path/to/runlog.txt -o /path/to/output.csv
+$ source activate opentrons
+$ python parse_robot_log.py /path/to/runlog.txt -o /path/to/output.csv
 # -o is optional, if omitted the output is shown in the terminal
 ```
 
@@ -52,3 +55,25 @@ Each line represents the transfer of liquid from a well to another, and the colu
 - destination slot (which slot on the robot's deck the destination plate is in)
 - destination well
 - liquid volume
+
+
+Examples
+--------
+
+
+The folder `examples` contains two sets of example files, the runlogs, and the csv outputs obtained with `parse_robot_log.py` and `run_opentrons_simulation.py`.
+
+For example:
+- `example_01.py` is a protocol file.
+- `runlog_01.txt` contains the robot's output as a text file. It's obtained by running
+```
+$ opentrons_simulate examples/example_01.py >> examples/runlog_01.txt
+```
+- `output_01_fromwrapper.csv` contains the csv output from running:
+```
+$ python run_opentrons_simulation.py examples/example_01.py -o examples/output_01_fromwrapper.csv
+```
+- `output_01_fromparse.csv` contains the csv output from running:
+```
+$ python parse_robot_log.py examples/runlog_01.txt -o examples/output_01_fromparser.csv
+```
