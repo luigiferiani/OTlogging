@@ -24,7 +24,7 @@ At the moment, the script ignores, on purpose, any transfer of liquid from the t
 This will likely change soon though.
 
 #### Usage
-```
+```sh
 $ source activate opentrons
 $ python run_opentrons_simulation.py /path/to/protocol.py -o /path/to/output.csv
 # -o is optional, if omitted the output is shown in the terminal
@@ -36,7 +36,7 @@ $ python run_opentrons_simulation.py /path/to/protocol.py -o /path/to/output.csv
 The script `parse_robot_log.py` takes instead an existing text file with the printed runlog and parses it to reconstruct the robot's actions.
 
 #### Usage
-```
+```sh
 $ source activate opentrons
 $ python parse_robot_log.py /path/to/runlog.txt -o /path/to/output.csv
 # -o is optional, if omitted the output is shown in the terminal
@@ -66,14 +66,14 @@ The folder `examples` contains two sets of example files, the runlogs, and the c
 For example:
 - `example_01.py` is a protocol file.
 - `runlog_01.txt` contains the robot's output as a text file. It's obtained by running
-```
+```sh
 $ opentrons_simulate examples/example_01.py >> examples/runlog_01.txt
 ```
 - `output_01_fromwrapper.csv` contains the csv output from running:
-```
+```sh
 $ python run_opentrons_simulation.py examples/example_01.py -o examples/output_01_fromwrapper.csv
 ```
 - `output_01_fromparse.csv` contains the csv output from running:
-```
+```sh
 $ python parse_robot_log.py examples/runlog_01.txt -o examples/output_01_fromparser.csv
 ```
