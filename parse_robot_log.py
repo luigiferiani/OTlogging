@@ -105,7 +105,7 @@ class LiquidTransfer(object):
         source_slot = re.findall(DECK_SLOT, _line)
         assert source_slot is not None, 'source_slot lookup failed in "{}"'.format(_line)
         source_slot = source_slot[0]
-        print(source_slot, source_well, amount)
+        # print(source_slot, source_well, amount)
         self.source.append(Source(slot=source_slot, well=source_well, amount=amount))
         return
 
@@ -120,7 +120,7 @@ class LiquidTransfer(object):
         dest_slot = re.findall(DECK_SLOT, _line)
         assert dest_slot is not None, 'source_slot lookup failed in "{}"'.format(_line)
         dest_slot = dest_slot[0]
-        print(dest_slot, dest_well, amount)
+        # print(dest_slot, dest_well, amount)
         self.dest.append(Dest(slot=dest_slot, well=dest_well, amount=amount))
         return
 
