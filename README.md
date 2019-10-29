@@ -38,3 +38,17 @@ The script `parse_robot_log.py` takes instead an existing text file with the pri
 python parse_robot_log.py /path/to/runlog.txt -o /path/to/output.csv
 # -o is optional, if omitted the output is shown in the terminal
 ```
+
+
+Output
+------
+
+If the optional flag `-o, --output` is not specified when running the scripts, the output will simply be in the terminal.
+If instead the flag is used, the output will be saved in csv format.
+Each line represents the transfer of liquid from a well to another, and the columns are, in order:
+
+- source slot (which slot on the robot's deck the source plate is in)
+- source well
+- destination slot (which slot on the robot's deck the destination plate is in)
+- destination well
+- liquid volume
