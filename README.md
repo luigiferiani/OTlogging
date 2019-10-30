@@ -3,11 +3,32 @@
 Repository with code to run an OpenTrons protocol simulation and logging its results,
 and to parse the text output from the standard `opentrons_simulate`
 
-Instructions
+Installation and instructions
 ------------
 
 This repo provides two methods for logging the robot's actions.
 It relies on the OpenTrons API being installed, and works in the conda environment where the OpenTrons API is installed.
+
+### Installation
+
+The first step is to install [Anaconda](https://www.anaconda.com/distribution/). Once that is done, to install the OpenTrons API, type in the terminal:
+```sh
+$ conda env create -n opentrons
+# use the following line if the above doesn't work:
+# conda create -n opentrons
+$ source activate opentrons
+$ conda install pip
+$ pip install opentrons
+```
+
+At this point, you should have a functioning OpenTrons environment and you can proceed to install the scripts in this repo:
+```sh
+$ source activate opentrons
+$ git clone https://github.com/luigiferiani/OTlogging.git
+$ cd OTlogging
+$ pip install -e .
+```
+
 
 ### A wrapper for opentrons_simulate
 
@@ -26,7 +47,7 @@ This will likely change soon though.
 #### Usage
 ```sh
 $ source activate opentrons
-$ python run_opentrons_simulation.py /path/to/protocol.py -o /path/to/output.csv
+$ run_opentrons_simulation /path/to/protocol.py -o /path/to/output.csv
 # -o is optional, if omitted the output is shown in the terminal
 ```
 
@@ -38,7 +59,7 @@ The script `parse_robot_log.py` takes instead an existing text file with the pri
 #### Usage
 ```sh
 $ source activate opentrons
-$ python parse_robot_log.py /path/to/runlog.txt -o /path/to/output.csv
+$ parse_robot_log /path/to/runlog.txt -o /path/to/output.csv
 # -o is optional, if omitted the output is shown in the terminal
 ```
 
