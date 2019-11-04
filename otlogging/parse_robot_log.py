@@ -4,6 +4,7 @@ import re
 import sys
 import argparse
 from collections import namedtuple
+from .run_opentrons_simulation import write_header
 
 LINE_TYPES = {'aspirate':'Aspirating',
               'dispense':'Dispensing',
@@ -219,6 +220,7 @@ def parse_protocol(fname, fidout):
             else: # an action should be running already
                 current_action.update(line, line_type)
 
+    write_header(fidout)
     for i, action in enumerate(actions_list):
         # print(i)
         action.create_log()

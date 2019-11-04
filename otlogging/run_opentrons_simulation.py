@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+import re
+import sys
+import argparse
+from pprint import pprint
+from opentrons import simulate
 
 
 def is_summary_command(_command):
-    return _command['level']==0
+    return _command['level'] == 0
 
 
 def is_moving_liquid_command(_command):
     """Returns True if command contains both a source and a destination"""
-    _has_source_and_dest = 'source' in _command['payload'] and \
-                           'dest'   in _command['payload']
+    _has_source_and_dest = ('source' in _command['payload'] and
+                            'dest'   in _command['payload'])
     return _has_source_and_dest
 
 
@@ -67,8 +71,10 @@ def is_well_from_trough(_loc):
 def get_pipette_type(_command):
     return _command['payload']['instrument'].type
 
+
 def get_volume(_command):
     return [_command['payload']['volume']]
+
 
 def which_transfer_case(_command):
     """
@@ -151,20 +157,24 @@ def print_mapping(_src_slot, _src_name, _dst_slot, _dst_name, _amount, _fidout):
     if len(_amount)==1 and len(_amount)!=len(_dst_name):
         _amount = _amount*len(_dst_name)
     try:
-        for _sslt, _snm, _dslt, _dnm, _amnt in zip(_src_slot, _src_name, _dst_slot, _dst_name, _amount):
-            print('{},{},{},{},{:.1f}'.format(_sslt, _snm, _dslt, _dnm, _amnt), file=_fidout)
+        for _sslt, _snm, _dslt, _dnm, _amnt in zip(
+                _src_slot, _src_name, _dst_slot, _dst_name, _amount):
+            print('{},{},{},{},{:.1f}'.format(_sslt, _snm, _dslt, _dnm, _amnt),
+                  file=_fidout)
     except:
         import pdb; pdb.set_trace()
 
 
-def main():
-    import re
-    import sys
-    import argparse
-    from pprint import pprint
-    from opentrons import simulate
+def write_header(_fidout):
+    print(','.join(['source_slot', 'source_well', 'dest_slot', 'dest_well', 'volume']),
+          file=_fidout)
 
-    parser = argparse.ArgumentParser(description="Run a robot's simulation, output well mapping in csv-friendly format")
+
+def main():
+
+    parser = argparse.ArgumentParser(
+        description="Run a robot's simulation, output well mapping in csv-friendly format"
+    )
     parser.add_argument('protocol',
                         type=str)
     parser.add_argument('-o', '--output',
@@ -179,7 +189,7 @@ def main():
         robot_log = simulate.simulate(fid)
 
     # pprint(robot_log)
-
+    write_header(fidout)
     # loop on command log
     for command in robot_log:
         # extract info from the summary level, so discard all commands not at level 0
