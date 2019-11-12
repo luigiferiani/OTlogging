@@ -166,7 +166,7 @@ def print_mapping(_src_slot, _src_name, _dst_slot, _dst_name, _amount, _fidout):
 
 
 def write_header(_fidout):
-    print(','.join(['source_slot', 'source_well', 'dest_slot', 'dest_well', 'volume']),
+    print(','.join(['source_slot', 'source_well', 'destination_slot', 'destination_well', 'volume']),
           file=_fidout)
 
 
