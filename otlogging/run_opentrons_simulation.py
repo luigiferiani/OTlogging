@@ -186,7 +186,15 @@ def main():
     fidout = args.output
 
     with open(protocol_fname,'r') as fid:
-        robot_log = simulate.simulate(fid)
+        robot_log = simulate.simulate(fid, protocol_fname)
+
+    # opentrons broke my code. So:
+    if (isinstance(robot_log, tuple)
+        and len(robot_log) == 2
+        and robot_log[1] == None):
+        _robot_log = robot_log
+        robot_log = _robot_log[0]
+
 
     # pprint(robot_log)
     write_header(fidout)

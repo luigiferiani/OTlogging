@@ -11,15 +11,16 @@ LINE_TYPES = {'aspirate':'Aspirating',
               'pickup':'Picking up',
               'droptip':'Dropping'}
 
-AMOUNT_ASPIRATED = r"(?<=Aspirating\ )\w*\.\w*(?=\ uL\ from)"
-AMOUNT_DISPENSED = r"(?<=Dispensing\ )\w*\.\w*(?=\ uL\ into)"
+AMOUNT_ASPIRATED = r"(?<=Aspirating\ )(\w*\.\w*|\w*)(?=\ uL\ from)"
+AMOUNT_DISPENSED = r"(?<=Dispensing\ )(\w*\.\w*|\w*)(?=\ uL\ into)"
 SOURCE_WELL      = r"(?<=from\ well\ )[A-Z]*\d*(?=\ in\ )"
 DEST_WELL        = r"(?<=into\ well\ )[A-Z]*\d*(?=\ in\ )"
 DECK_SLOT        = r"(?<=\ in\ \")\d*(?=\")"
 
 Source = namedtuple('Source', 'slot well amount')
 Dest = namedtuple('Dest', 'slot well amount')
-OutLine = namedtuple('OutLine', 'source_slot, source_well, dest_slot, dest_well, amount')
+OutLine = namedtuple('OutLine',
+                     'source_slot, source_well, dest_slot, dest_well, amount')
 
 def which_type_of_line(raw_line, linetypes_dict):
     """
@@ -44,7 +45,8 @@ class LiquidTransfer(object):
     """
     transfer can be:
         1 aspirate -> 1 dispense
-        N aspirate -> 1 dispense (I won't support this at the moment, if the aspirate are from different wells)
+        N aspirate -> 1 dispense (I won't support this at the moment,
+            if the aspirate are from different wells)
         1 aspirate -> N dispense
     what closes a transfer?
         a) drop tip
@@ -66,11 +68,14 @@ class LiquidTransfer(object):
             self._update_source(_line)
             self.last_action_type = _line_type
         elif _line_type is 'pickup':
-            assert pipette_type is None, 'When built by pick_up, do not give pipette_type'
+            # TODO: user should be able to supply correct pipette FileType
+            # so assert the read one matched the input one
+            assert pipette_type is None, \
+                'When built by pick_up, do not give pipette_type'
             self.set_pipette_type(_line)
             self.last_action_type = _line_type
         else:
-            raise Exception('Object can be built only with aspirate and pickup.')
+            raise Exception('Object can be built only with aspirate or pickup.')
 
     def set_pipette_type(self, _line):
         if 'tip wells' in _line:
@@ -90,28 +95,39 @@ class LiquidTransfer(object):
     def _update_source(self, _line):
         # I could combine the regexs in one but why bother
         amount = re.findall(AMOUNT_ASPIRATED, _line)
-        assert amount is not None, 'amount lookup failed in "{}"'.format(_line)
-        amount = amount[0]
+        assert len(amount) > 0, 'amount lookup failed in "{}"'.format(_line)
+        try:
+            amount = amount[0]
+        except:
+            import pdb
+            pdb.set_trace()
         source_well = re.findall(SOURCE_WELL, _line)
-        assert source_well is not None, 'source_well lookup failed in "{}"'.format(_line)
+        assert len(source_well) > 0, \
+            'source_well lookup failed in "{}"'.format(_line)
         source_well = source_well[0]
         source_slot = re.findall(DECK_SLOT, _line)
-        assert source_slot is not None, 'source_slot lookup failed in "{}"'.format(_line)
+        assert len(source_slot) > 0, \
+            'source_slot lookup failed in "{}"'.format(_line)
         source_slot = source_slot[0]
         # print(source_slot, source_well, amount)
-        self.source.append(Source(slot=source_slot, well=source_well, amount=amount))
+        self.source.append(Source(slot=source_slot,
+                                  well=source_well,
+                                  amount=amount))
         return
 
     def _update_dest(self, _line):
         # I could combine the regexs in one but why bother
         amount = re.findall(AMOUNT_DISPENSED, _line)
-        assert amount is not None, 'amount lookup failed in "{}"'.format(_line)
+        assert len(amount) > 0, \
+            'amount lookup failed in "{}"'.format(_line)
         amount = amount[0]
         dest_well = re.findall(DEST_WELL, _line)
-        assert dest_well is not None, 'source_well lookup failed in "{}"'.format(_line)
+        assert len(dest_well) > 0, \
+            'source_well lookup failed in "{}"'.format(_line)
         dest_well = dest_well[0]
         dest_slot = re.findall(DECK_SLOT, _line)
-        assert dest_slot is not None, 'source_slot lookup failed in "{}"'.format(_line)
+        assert len(dest_slot) > 0, \
+            'source_slot lookup failed in "{}"'.format(_line)
         dest_slot = dest_slot[0]
         # print(dest_slot, dest_well, amount)
         self.dest.append(Dest(slot=dest_slot, well=dest_well, amount=amount))
@@ -128,17 +144,24 @@ class LiquidTransfer(object):
 
     def create_log(self):
         """
-        Always all aspirate first and dispense at the end, otherwise it's a new actions_list.
+        Always all aspirate first and dispense at the end, otherwise it's a
+        new actions_list.
         Do a check that the sum of aspirate is the same as the sum of dispense
         """
         _rows = 'ABCDEFGH'
-        aspirate_sum = sum(float(x.amount) for x in self.source)
+        try:
+            aspirate_sum = sum(float(x.amount) for x in self.source)
+        except:
+            import pdb; pdb.set_trace()
         dispense_sum = sum(float(x.amount) for x in self.dest)
-        assert aspirate_sum==dispense_sum, 'Aspirated volume is not equal to Dispensed volume'
+        assert aspirate_sum==dispense_sum, \
+            'Aspirated volume is not equal to Dispensed volume'
         # check that aspirate is only from one well
-        assert len(list(set((x.slot, x.well) for x in self.source))) == 1, 'Aspirate from multiple wells is not supported'
+        assert len(list(set((x.slot, x.well) for x in self.source))) == 1, \
+            'Aspirate from multiple wells is not supported'
         # consolidate the aspirate volume, ditch aspirate amount
-        # basically broadcast the unique aspirating well to all the dospensing wells
+        # basically broadcast the unique aspirating well to
+        # all the dispensing wells
         _out = []
         for dst in self.dest:
             _out.append( OutLine(source_slot=self.source[0].slot,
@@ -153,11 +176,13 @@ class LiquidTransfer(object):
             for entry in _out:
                 re_out = re.findall(r'\d+$', entry.source_well)
                 if len(re_out) == 0:
-                    raise ValueError('Regex failed: cannot find a number at the end of the well name??')
+                    raise ValueError(("Regex failed: cannot find a number at "
+                                      "the end of the well name??"))
                 _src_col = re_out[0]
                 re_out = re.findall(r'\d+$', entry.dest_well)
                 if len(re_out) == 0:
-                    raise ValueError('Regex failed: cannot find a number at the end of the well name??')
+                    raise ValueError(("Regex failed: cannot find a number at "
+                                      "the end of the well name??"))
                 _dst_col = re_out[0]
                 out.extend([OutLine(source_slot=entry.source_slot,
                                    source_well=_row+_src_col,
@@ -183,7 +208,6 @@ class LiquidTransfer(object):
 def parse_protocol(fname, fidout):
 
     actions_list = []
-    last_line_type = ''
     is_action_open = False
 
     with open(fname,'r') as fid:
@@ -232,7 +256,9 @@ def main():
 
 
     # input parser
-    parser = argparse.ArgumentParser(description="Parsse the output of a robot's protocol, output well mapping in csv-friendly format")
+    parser = argparse.ArgumentParser(
+        description=("Parse the output of a robot's protocol, "
+                     "output well mapping in csv-friendly format"))
     parser.add_argument('protocol',
                         type=str)
     parser.add_argument('-o', '--output',
